@@ -10,7 +10,6 @@ import net.minecraft.client.gui.components.events.GuiEventListener
 import net.minecraft.client.gui.navigation.ScreenAxis
 import net.minecraft.client.gui.navigation.ScreenRectangle
 import net.minecraft.client.gui.screens.Screen
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.input.MouseButtonInfo
 import net.minecraft.network.chat.Component
@@ -24,7 +23,6 @@ import moe.nea.firmament.events.ReloadRegistrationEvent
 import moe.nea.firmament.repo.RepoManager
 import moe.nea.firmament.repo.SBItemStack
 import moe.nea.firmament.util.MC
-import moe.nea.firmament.util.accessors.castAccessor
 import moe.nea.firmament.util.render.drawAlignedBox
 import moe.nea.firmament.util.skyblockId
 
@@ -33,17 +31,7 @@ object ItemList {
 
 	fun collectExclusions(screen: Screen): Set<ScreenRectangle> {
 		val exclusions = mutableSetOf<ScreenRectangle>()
-		if (screen is AbstractContainerScreen<*>) {
-			val screenHandler = screen.castAccessor()
-			exclusions.add(
-				ScreenRectangle(
-					screenHandler.x_Firmament,
-					screenHandler.y_Firmament,
-					screenHandler.backgroundWidth_Firmament,
-					screenHandler.backgroundHeight_Firmament
-				)
-			)
-		}
+
 		FirmamentAPI.getInstance().extensions
 			.forEach { extension ->
 				for (rectangle in extension.getExclusionZones(screen)) {

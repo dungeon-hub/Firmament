@@ -62,7 +62,7 @@ object SBCraftingRecipeRenderer : GenericRecipeRenderer<NEUCraftingRecipe> {
 		return neuRepository.items.items.values.flatMap { it.recipes }.filterIsInstance<NEUCraftingRecipe>()
 	}
 
-	override val icon: ItemStack = ItemStack(Blocks.CRAFTING_TABLE)
+	override val icon: ItemStack by lazy { ItemStack(Blocks.CRAFTING_TABLE) }
 	override val title: Component = tr("firmament.category.crafting", "SkyBlock Crafting")
 	override val identifier: Identifier = Firmament.identifier("crafting_recipe")
 }

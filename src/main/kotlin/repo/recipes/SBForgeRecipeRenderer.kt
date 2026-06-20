@@ -74,7 +74,7 @@ object SBForgeRecipeRenderer : GenericRecipeRenderer<NEUForgeRecipe> {
 		return listOfNotNull(SBItemStack(recipe.outputStack))
 	}
 
-	override val icon: ItemStack = ItemStack(Blocks.ANVIL)
+	override val icon: ItemStack by lazy { ItemStack(Blocks.ANVIL) }
 	override val title: Component = tr("firmament.category.forge", "Forge Recipes")
 	override val identifier: Identifier = Firmament.identifier("forge_recipe")
 

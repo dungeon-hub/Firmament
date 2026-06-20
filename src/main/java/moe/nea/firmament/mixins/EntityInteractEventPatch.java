@@ -22,11 +22,12 @@ public class EntityInteractEventPatch {
     }
 
     @Inject(method = "interact", at = @At("HEAD"))
-    private void onInteract(Player player, Entity entity, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
+    private void onInteract(Player player, Entity entity, EntityHitResult hitResult, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         EntityInteractionEvent.Companion.publish(new EntityInteractionEvent(EntityInteractionEvent.InteractionKind.INTERACT, entity, hand));
     }
 
-    @Inject(method = "interactAt", at = @At("HEAD"))
+	// TODO is this nowadays just the same as the one above?
+    @Inject(method = "interact", at = @At("HEAD"))
     private void onInteractAtLocation(Player player, Entity entity, EntityHitResult hitResult, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         EntityInteractionEvent.Companion.publish(new EntityInteractionEvent(EntityInteractionEvent.InteractionKind.INTERACT_AT_LOCATION, entity, hand));
     }

@@ -17,7 +17,7 @@ public class ChatPeekScrollPatch {
 		if (Fixes.INSTANCE.shouldPeekChat() && Fixes.INSTANCE.shouldScrollPeekedChat()) ci.cancel();
 	}
 
-	@ModifyVariable(method = "onScroll", at = @At(value = "STORE"), ordinal = 0)
+	@ModifyVariable(method = "onScroll", at = @At(value = "STORE"), name = "wheel")
 	public int onGetChatHud(int i) {
 		if (Fixes.INSTANCE.shouldPeekChat() && Fixes.INSTANCE.shouldScrollPeekedChat())
 			Minecraft.getInstance().gui.getChat().scrollChat(i);

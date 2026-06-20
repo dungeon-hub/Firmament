@@ -8,13 +8,10 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.item.Items
 import net.minecraft.network.protocol.game.ServerboundContainerClosePacket
-import net.minecraft.network.chat.Component
-import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.ChestInventoryUpdateEvent
 import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.SlotClickEvent
 import moe.nea.firmament.events.SlotRenderEvents
-import moe.nea.firmament.events.TickEvent
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.async.discard
 import moe.nea.firmament.util.customgui.customGui
@@ -64,7 +61,6 @@ object StorageOverlay {
 		}
 	}
 
-	@Subscribe
 	fun highlightSlots(event: SlotRenderEvents.Before) {
 		if (!TConfig.highlightSearchResults) return
 		val storageOverlayScreen =
@@ -93,12 +89,10 @@ object StorageOverlay {
 	var skipNextStorageOverlayBackflip = false
 	var currentHandler: StorageBackingHandle? = null
 
-	@Subscribe
 	fun onChestContentUpdate(event: ChestInventoryUpdateEvent) {
 		rememberContent(currentHandler)
 	}
 
-	@Subscribe
 	fun onClick(event: SlotClickEvent) {
 		if (lastStorageOverlay != null && event.slot.container !is Inventory && event.slot.containerSlot < 9
 			&& event.stack.item != Items.BLACK_STAINED_GLASS_PANE
@@ -107,7 +101,6 @@ object StorageOverlay {
 		}
 	}
 
-	@Subscribe
 	fun onScreenChange(it: ScreenChangeEvent) {
 		if (it.old == null && it.new == null) return
 		val storageOverlayScreen = it.old as? StorageOverlayScreen

@@ -19,7 +19,6 @@ import moe.nea.firmament.events.ChestInventoryUpdateEvent
 import moe.nea.firmament.events.CommandEvent
 import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.SlotRenderEvents
-import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
 import moe.nea.firmament.util.ClipboardUtils
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.TemplateUtil
@@ -128,8 +127,6 @@ object HotmPresets {
 			val screen = screen.castAccessor()
 			screen.x_Firmament = bounds.x
 			screen.y_Firmament = bounds.y
-			screen.backgroundWidth_Firmament = bounds.width
-			screen.backgroundHeight_Firmament = bounds.height
 		}
 
 		override fun moveSlot(slot: Slot) {

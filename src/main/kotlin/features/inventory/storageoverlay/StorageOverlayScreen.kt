@@ -10,8 +10,6 @@ import io.github.notenoughupdates.moulconfig.gui.component.TextComponent
 import io.github.notenoughupdates.moulconfig.gui.component.TextFieldComponent
 import io.github.notenoughupdates.moulconfig.observer.BaseObservable
 import io.github.notenoughupdates.moulconfig.observer.GetSetter
-import io.github.notenoughupdates.moulconfig.observer.Observable
-import io.github.notenoughupdates.moulconfig.observer.Observer
 import io.github.notenoughupdates.moulconfig.observer.Property
 import java.util.TreeSet
 import me.shedaniel.math.Point
@@ -69,7 +67,7 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 		val CONTROL_HEIGHT = 50
 
 		var scroll: Float = 0F
-		var lastRenderedInnerHeight = 0
+		var contentHeight: Int = 0
 		val searchText = Property.of("") // TODO: sync with REI
 
 		fun resetScroll() {
@@ -109,6 +107,21 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 		scroll = scroll.coerceAtMost(getMaxScroll()).coerceAtLeast(0F)
 	}
 
+	fun rebuildLayout(width: Int, height: Int) {
+		this.width = width
+		this.height = height
+
+		pageWidthCount = StorageOverlay.TConfig.columns
+			.coerceAtMost((width - PADDING) / (PAGE_WIDTH + PADDING))
+			.coerceAtLeast(1)
+
+		measurements = Measurements()
+
+		scroll = scroll
+			.coerceAtMost(getMaxScroll())
+			.coerceAtLeast(0F)
+	}
+
 	override fun mouseScrolled(
 		mouseX: Double,
 		mouseY: Double,
@@ -125,7 +138,7 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 			.coerceAtLeast(0F)
 	}
 
-	fun getMaxScroll() = lastRenderedInnerHeight.toFloat() - getScrollPanelInner().height
+	fun getMaxScroll() = (contentHeight.toFloat() - getScrollPanelInner().height).coerceAtLeast(0F)
 
 	val playerInventorySprite = Identifier.parse("firmament:storageoverlay/player_inventory")
 	val upperBackgroundSprite = Identifier.parse("firmament:storageoverlay/upper_background")
@@ -280,12 +293,24 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 		)
 	}
 
-	fun createScissors(context: GuiGraphicsExtractor) {
+	inline fun withScrollScissor(
+		context: GuiGraphicsExtractor,
+		block: () -> Unit
+	) {
 		val rect = getScrollPanelInner()
+
 		context.enableScissorWithoutTranslation(
-			rect.minX.toFloat(), rect.minY.toFloat(),
-			rect.maxX.toFloat(), rect.maxY.toFloat(),
+			rect.minX.toFloat(),
+			rect.minY.toFloat(),
+			rect.maxX.toFloat(),
+			rect.maxY.toFloat()
 		)
+
+		try {
+			block()
+		} finally {
+			context.disableScissor()
+		}
 	}
 
 	fun drawPages(
@@ -294,22 +319,24 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 		slots: List<Slot>?,
 		slotOffset: Point
 	) {
-		createScissors(context)
 		val data = StorageOverlay.Data.data ?: StorageData()
-		layoutedForEach(data) { rect, page, inventory ->
-			drawPage(
-				context,
-				rect.x,
-				rect.y,
-				page, inventory,
-				if (excluding == page) slots else null,
-				slotOffset,
-				mouseX,
-				mouseY
-			)
-		}
-		context.disableScissor()
+		val projections = slots?.let { buildProjections(it, slotOffset) }
 
+		withScrollScissor(context) {
+			layoutedForEach(data) { rect, page, inventory ->
+				drawPage(
+					context,
+					rect.x,
+					rect.y,
+					page,
+					inventory,
+					slots,
+					projections,
+					mouseX,
+					mouseY
+				)
+			}
+		}
 	}
 
 
@@ -487,7 +514,7 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 				maxHeight = 0
 			}
 		}
-		lastRenderedInnerHeight = maxHeight + yOffset + scroll.toInt()
+		contentHeight = maxHeight + yOffset
 	}
 
 	fun drawPage(
@@ -497,7 +524,7 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 		page: StoragePageSlot,
 		inventory: StorageData.StorageInventory,
 		slots: List<Slot>?,
-		slotOffset: Point,
+		projections: List<SlotProjection>?,
 		mouseX: Int,
 		mouseY: Int,
 	): Int {
@@ -540,12 +567,25 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 		inv.stacks.forEachIndexed { index, stack ->
 			val slotX = (index % 9) * SLOT_SIZE + x + 3
 			val slotY = (index / 9) * SLOT_SIZE + y + 5 + font.lineHeight + 1
+
+			val proj = projections?.getOrNull(index)
+
+			val finalX = proj?.x ?: slotX
+			val finalY = proj?.y ?: slotY
 			if (slots == null) {
-				val fakeSlot = FakeSlot(stack, slotX, slotY)
-				SlotRenderEvents.Before.publish(SlotRenderEvents.Before(context, fakeSlot))
-				context.item(stack, slotX, slotY)
-				context.itemDecorations(font, stack, slotX, slotY)
-				SlotRenderEvents.After.publish(SlotRenderEvents.After(context, fakeSlot))
+				val fakeSlot = FakeSlot(stack, finalX, finalY)
+
+				SlotRenderEvents.Before.publish(
+					SlotRenderEvents.Before(context, fakeSlot)
+				)
+
+				context.item(stack, finalX, finalY)
+				context.itemDecorations(font, stack, finalX, finalY)
+
+				SlotRenderEvents.After.publish(
+					SlotRenderEvents.After(context, fakeSlot)
+				)
+
 				if (StorageOverlay.TConfig.showInactivePageTooltips && !stack.isEmpty &&
 					mouseX >= slotX && mouseY >= slotY &&
 					mouseX <= slotX + 16 && mouseY <= slotY + 16 &&
@@ -567,13 +607,24 @@ class StorageOverlayScreen : Screen(Component.literal("")) {
 						)
 					}
 				}
-			} else {
-				val slot = slots[index]
-				slot.x = slotX - slotOffset.x
-				slot.y = slotY - slotOffset.y
 			}
 		}
 		return pageHeight + 6
+	}
+
+	fun buildProjections(
+		slots: List<Slot>,
+		slotOffset: Point
+	): List<SlotProjection> {
+		return slots.mapIndexed { index, _ ->
+			val (x, y) = getPlayerInventorySlotPosition(index)
+
+			SlotProjection(
+				index,
+				x - slotOffset.x,
+				y - slotOffset.y
+			)
+		}
 	}
 
 	fun getBounds(): List<Rectangle> {

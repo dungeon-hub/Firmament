@@ -1,14 +1,12 @@
 
 package moe.nea.firmament.mixins;
 
-import com.llamalad7.mixinextras.sugar.Local;
 import moe.nea.firmament.events.EntityUpdateEvent;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientCommonPacketListenerImpl;
 import net.minecraft.client.multiplayer.CommonListenerCookie;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundUpdateAttributesPacket;
@@ -31,8 +29,8 @@ public abstract class EntityUpdateEventListener extends ClientCommonPacketListen
 	}
 
 	@Inject(method = "handleSetEquipment", at = @At(value = "INVOKE", target = "Ljava/util/List;forEach(Ljava/util/function/Consumer;)V", shift = At.Shift.AFTER))
-	private void onEquipmentUpdate(ClientboundSetEquipmentPacket packet, CallbackInfo ci, @Local LivingEntity entity) {
-		EntityUpdateEvent.Companion.publish(new EntityUpdateEvent.EquipmentUpdate(entity, packet.getSlots()));
+	private void onEquipmentUpdate(ClientboundSetEquipmentPacket packet, CallbackInfo ci) {
+		EntityUpdateEvent.Companion.publish(new EntityUpdateEvent.EquipmentUpdate(level.getEntity(packet.getEntity()), packet.getSlots()));
 	}
 
 	@Inject(method = "handleUpdateAttributes", at = @At("TAIL"))
@@ -42,7 +40,7 @@ public abstract class EntityUpdateEventListener extends ClientCommonPacketListen
 	}
 
 	@Inject(method = "handleSetEntityData", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/syncher/SynchedEntityData;assignValues(Ljava/util/List;)V", shift = At.Shift.AFTER))
-	private void onEntityTracker(ClientboundSetEntityDataPacket packet, CallbackInfo ci, @Local Entity entity) {
-		EntityUpdateEvent.Companion.publish(new EntityUpdateEvent.TrackedDataUpdate(entity, packet.packedItems()));
+	private void onEntityTracker(ClientboundSetEntityDataPacket packet, CallbackInfo ci) {
+		EntityUpdateEvent.Companion.publish(new EntityUpdateEvent.TrackedDataUpdate(level.getEntity(packet.id()), packet.packedItems()));
 	}
 }

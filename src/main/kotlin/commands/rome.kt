@@ -18,8 +18,6 @@ import moe.nea.firmament.features.debug.DebugLogger
 import moe.nea.firmament.features.debug.DeveloperFeatures
 import moe.nea.firmament.features.debug.PowerUserTools
 import moe.nea.firmament.features.inventory.buttons.InventoryButtons
-import moe.nea.firmament.features.inventory.storageoverlay.StorageOverlayScreen
-import moe.nea.firmament.features.inventory.storageoverlay.StorageOverviewScreen
 import moe.nea.firmament.features.mining.MiningBlockInfoUi
 import moe.nea.firmament.gui.config.AllConfigsGui
 import moe.nea.firmament.gui.config.BooleanHandler
@@ -121,18 +119,6 @@ fun firmamentCommand(ctx: CommandBuildContext) = literal("firmament") {
 				val p = MC.player ?: return@thenExecute
 				MC.sendServerChat("x: ${p.blockX}, y: ${p.blockY}, z: ${p.blockZ} ${this[rest]}")
 			}
-		}
-	}
-	thenLiteral("storageoverview") {
-		thenExecute {
-			ScreenUtil.setScreenLater(StorageOverviewScreen())
-			MC.player?.connection?.sendCommand("storage")
-		}
-	}
-	thenLiteral("storage") {
-		thenExecute {
-			ScreenUtil.setScreenLater(StorageOverlayScreen())
-			MC.player?.connection?.sendCommand("storage")
 		}
 	}
 	thenLiteral("repo") {

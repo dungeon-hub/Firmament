@@ -159,16 +159,6 @@ fun createIsolatedSourceSet(
 	return ss
 }
 
-@Deprecated("No more remapping")
-val SourceSet.modImplementationConfigurationName
-	get() =
-		this.implementationConfigurationName
-
-@Deprecated("No more remapping")
-val SourceSet.modRuntimeOnlyConfigurationName
-	get() =
-		this.runtimeOnlyConfigurationName
-
 val shadowMe by configurations.creating {
 	exclude(group = "org.jetbrains.kotlin")
 	exclude(group = "org.jetbrains.kotlinx")
@@ -196,7 +186,6 @@ val gameTestSourceSet by sourceSets.named("gametest") {
 val sodiumSourceSet = createIsolatedSourceSet("sodium")
 val yaclSourceSet = createIsolatedSourceSet("yacl")
 val wildfireGenderSourceSet = createIsolatedSourceSet("wildfireGender")
-val jadeSourceSet = createIsolatedSourceSet("jade")
 val modmenuSourceSet = createIsolatedSourceSet("modmenu")
 val reiSourceSet = createIsolatedSourceSet("rei", isEnabled = false)
 val moulconfigSourceSet = createIsolatedSourceSet("moulconfig")
@@ -207,7 +196,7 @@ val jarvisSourceSet = createIsolatedSourceSet("jarvis", "vendor/jarvis", inherit
 
 dependencies {
 	// Minecraft dependencies
-	"minecraft"(libs.minecraft)
+	minecraft(libs.minecraft)
 
 	// Hotswap Dependency
 	hotswap(libs.hotswap)
@@ -260,7 +249,6 @@ dependencies {
 	(wildfireGenderSourceSet.implementationConfigurationName)(customTexturesSourceSet.output)
 	(sodiumSourceSet.implementationConfigurationName)(libs.sodium)
 	(sodiumSourceSet.implementationConfigurationName)(customTexturesSourceSet.output)
-	(jadeSourceSet.implementationConfigurationName)(libs.jade)
 
 	(yaclSourceSet.implementationConfigurationName)(libs.yacl)
 
@@ -285,7 +273,6 @@ dependencies {
 }
 
 loom {
-	clientOnlyMinecraftJar()
 	accessWidenerPath.set(project.file("src/main/resources/firmament.accesswidener"))
 	runs {
 		removeIf { it.name == "server" }
@@ -472,6 +459,11 @@ tasks.scanLicenses {
 //		scanConfiguration(it.modImplementationConfigurationName.get())
 //	}
 	outputFile.set(layout.buildDirectory.file("LICENSES-FIRMAMENT.json"))
+	doLast {
+		layout.buildDirectory.file("LICENSES-FIRMAMENT.json").orNull?.asFile?.copyTo(
+			layout.buildDirectory.dir("resources").orNull?.dir("main")?.file("LICENSES-FIRMAMENT.json")?.asFile!!, true
+		)
+	}
 	licenseFormatter.set(moe.nea.licenseextractificator.JsonLicenseFormatter())
 }
 tasks.register("printAllLicenses", LicenseDiscoveryTask::class.java, licensing).configure {

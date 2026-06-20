@@ -27,7 +27,6 @@ import moe.nea.firmament.features.texturepack.CustomScreenLayouts.Alignment.RIGH
 import moe.nea.firmament.mixins.accessor.AccessorScreenHandler
 import moe.nea.firmament.util.ErrorUtil.intoCatch
 import moe.nea.firmament.util.IdentifierSerializer
-import moe.nea.firmament.util.accessors.castAccessor
 
 object CustomScreenLayouts : SimplePreparableReloadListener<List<CustomScreenLayouts.CustomScreenLayout>>() {
 
@@ -99,26 +98,17 @@ object CustomScreenLayouts : SimplePreparableReloadListener<List<CustomScreenLay
 		}
 
 		fun renderGeneric(context: GuiGraphicsExtractor, screen: AbstractContainerScreen<*>) {
-			screen.castAccessor()
-			val originalX: Int = (screen.width - screen.backgroundWidth_Firmament) / 2
-			val originalY: Int = (screen.height - screen.backgroundHeight_Firmament) / 2
-			val modifiedX = originalX + this.x
-			val modifiedY = originalY + this.y
-			val textureWidth = this.width
-			val textureHeight = this.height
+			val x = screen.width / 2 - (width / 2) + this.x
+			val y = screen.height / 2 - (height / 2) + this.y
+
 			context.blit(
 				RenderPipelines.GUI_TEXTURED,
-				this.texture,
-				modifiedX,
-				modifiedY,
-				0.0f,
-				0.0f,
-				textureWidth,
-				textureHeight,
-				textureWidth,
-				textureHeight
+				texture,
+				x, y,
+				0f, 0f,
+				width, height,
+				width, height
 			)
-
 		}
 	}
 
@@ -240,14 +230,6 @@ object CustomScreenLayouts : SimplePreparableReloadListener<List<CustomScreenLay
 		}
 		activeScreenOverride = event.new?.let { screen ->
 			customScreenLayouts.find { it.predicates.matches(screen) }
-		}
-
-		val screen = event.new as? AbstractContainerScreen<*> ?: return
-		val handler = screen.menu
-		activeScreenOverride?.let { override ->
-			override.slots.forEach { slotReplacer ->
-				slotReplacer.move(handler.slots)
-			}
 		}
 	}
 }

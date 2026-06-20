@@ -18,7 +18,6 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.serializer
 import net.minecraft.client.renderer.RenderPipelines
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
-import net.minecraft.client.gui.screens.inventory.InventoryScreen
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.inventory.ChestMenu
@@ -37,7 +36,6 @@ import moe.nea.firmament.events.ScreenChangeEvent
 import moe.nea.firmament.events.SlotRenderEvents
 import moe.nea.firmament.keybindings.InputModifiers
 import moe.nea.firmament.keybindings.SavedKeyBinding
-import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
 import moe.nea.firmament.util.CommonSoundEffects
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.SBData

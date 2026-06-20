@@ -4,6 +4,7 @@ import me.shedaniel.math.Rectangle
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.serializer
 import kotlin.time.Duration.Companion.seconds
+import net.minecraft.client.gui.screens.Screen
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.client.gui.screens.inventory.InventoryScreen
 import net.minecraft.network.chat.Component
@@ -11,11 +12,12 @@ import moe.nea.firmament.annotations.Subscribe
 import moe.nea.firmament.events.HandledScreenClickEvent
 import moe.nea.firmament.events.HandledScreenForegroundEvent
 import moe.nea.firmament.events.HandledScreenPushREIEvent
+import moe.nea.firmament.features.inventory.storageoverlay.StorageOverlayScreen
 import moe.nea.firmament.impl.v1.FirmamentAPIImpl
 import moe.nea.firmament.util.MC
 import moe.nea.firmament.util.ScreenUtil
 import moe.nea.firmament.util.TimeMark
-import moe.nea.firmament.util.accessors.getProperRectangle
+import moe.nea.firmament.util.accessors.castAccessor
 import moe.nea.firmament.util.data.Config
 import moe.nea.firmament.util.data.DataHolder
 import moe.nea.firmament.util.data.ManagedConfig
@@ -48,10 +50,31 @@ object InventoryButtons {
 		return DConfig.data.buttons.asSequence().filter(InventoryButton::isValid)
 	}
 
+	fun resolveScreenBounds(screen: Screen): Rectangle? {
+		return when (screen) {
+			is StorageOverlayScreen -> {
+				val m = screen.measurements
+				Rectangle(m.x, m.y, m.overviewWidth, m.overviewHeight)
+			}
+
+			is AbstractContainerScreen<*> -> {
+				val acc = screen.castAccessor()
+				Rectangle(
+					acc.x_Firmament,
+					acc.y_Firmament,
+					screen.width,
+					screen.height
+				)
+			}
+
+			else -> null
+		}
+	}
+
 
 	@Subscribe
 	fun onRectangles(it: HandledScreenPushREIEvent) {
-		val bounds = it.screen.getProperRectangle()
+		val bounds = resolveScreenBounds(it.screen) ?: return
 		for (button in getValidButtons(it.screen)) {
 			val buttonBounds = button.getBounds(bounds)
 			it.block(buttonBounds)
@@ -60,7 +83,7 @@ object InventoryButtons {
 
 	@Subscribe
 	fun onClickScreen(it: HandledScreenClickEvent) {
-		val bounds = it.screen.getProperRectangle()
+		val bounds = resolveScreenBounds(it.screen) ?: return
 		for (button in getValidButtons(it.screen)) {
 			val buttonBounds = button.getBounds(bounds)
 			if (buttonBounds.contains(it.mouseX, it.mouseY)) {
@@ -75,7 +98,7 @@ object InventoryButtons {
 
 	@Subscribe
 	fun onRenderForeground(it: HandledScreenForegroundEvent) {
-		val bounds = it.screen.getProperRectangle()
+		val bounds = resolveScreenBounds(it.screen) ?: return
 
 		var hoveredComponent: InventoryButton? = null
 		for (button in getValidButtons(it.screen)) {

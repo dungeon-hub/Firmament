@@ -2,7 +2,6 @@ package moe.nea.firmament.features.inventory.storageoverlay
 
 import me.shedaniel.math.Point
 import me.shedaniel.math.Rectangle
-import net.minecraft.client.Minecraft
 import net.minecraft.client.input.MouseButtonEvent
 import net.minecraft.client.gui.GuiGraphicsExtractor
 import net.minecraft.client.gui.screens.inventory.ContainerScreen
@@ -10,8 +9,6 @@ import net.minecraft.client.input.CharacterEvent
 import net.minecraft.client.input.KeyEvent
 import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.Slot
-import moe.nea.firmament.mixins.accessor.AccessorHandledScreen
-import moe.nea.firmament.util.accessors.castAccessor
 import moe.nea.firmament.util.customgui.CustomGui
 import moe.nea.firmament.util.focusedItemStack
 
@@ -30,24 +27,8 @@ class StorageOverlayCustom(
 		return overview.getBounds()
 	}
 
-	override fun afterSlotRender(context: GuiGraphicsExtractor, slot: Slot) {
-		if (slot.container !is Inventory)
-			context.disableScissor()
-	}
-
-	override fun beforeSlotRender(context: GuiGraphicsExtractor, slot: Slot) {
-		if (slot.container !is Inventory)
-			overview.createScissors(context)
-	}
-
 	override fun onInit() {
-		overview.init(screen.width, screen.height)
-		overview.init()
-		screen.castAccessor()
-		screen.x_Firmament = overview.measurements.x
-		screen.y_Firmament = overview.measurements.y
-		screen.backgroundWidth_Firmament = overview.measurements.totalWidth
-		screen.backgroundHeight_Firmament = overview.measurements.totalHeight
+		overview.rebuildLayout(screen.width, screen.height)
 	}
 
 	override fun isPointOverSlot(slot: Slot, xOffset: Int, yOffset: Int, pointX: Double, pointY: Double): Boolean {
@@ -89,6 +70,9 @@ class StorageOverlayCustom(
 	}
 
 	override fun render(drawContext: GuiGraphicsExtractor, delta: Float, mouseX: Int, mouseY: Int) {
+		val baseX = overview.measurements.x
+		val baseY = overview.measurements.y
+
 		overview.drawBackgrounds(drawContext)
 		overview.drawPages(
 			drawContext,
@@ -97,18 +81,21 @@ class StorageOverlayCustom(
 			delta,
 			(handler as? StorageBackingHandle.Page)?.storagePageSlot,
 			screen.menu.slots.take(screen.menu.rowCount * 9).drop(9),
-			Point((screen.castAccessor()).x_Firmament, screen.y_Firmament)
+		Point(baseX, baseY)
 		)
 		overview.drawScrollBar(drawContext)
 		overview.drawControls(drawContext, mouseX, mouseY)
 	}
 
 	override fun moveSlot(slot: Slot) {
+		val baseX = overview.measurements.x
+		val baseY = overview.measurements.y
+
 		val index = slot.containerSlot
 		if (index in 0..<36) {
 			val (x, y) = overview.getPlayerInventorySlotPosition(index)
-			slot.x = x - (screen.castAccessor()).x_Firmament
-			slot.y = y - screen.y_Firmament
+			slot.x = x - baseX
+			slot.y = y - baseY
 		} else {
 			slot.x = -100000
 			slot.y = -100000

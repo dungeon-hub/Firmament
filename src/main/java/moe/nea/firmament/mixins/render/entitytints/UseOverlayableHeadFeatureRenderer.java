@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.At;
 
 /**
  * Patch to make {@link CustomHeadLayer} use a {@link net.minecraft.client.renderer.rendertype.RenderType} that allows uses Minecraft's overlay texture, if a {@link EntityRenderTintEvent#overlayOverride} is specified.
- * @see UseOverlayableItemRenderer
  */
 @Mixin(CustomHeadLayer.class)
 public class UseOverlayableHeadFeatureRenderer {

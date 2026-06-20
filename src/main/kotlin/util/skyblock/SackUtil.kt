@@ -92,7 +92,7 @@ object SackUtil {
 		var foundRemoved = false
 
 		fun updateFromCleanText(cleanedText: String) {
-			cleanedText.split("\n").forEach { line ->
+			cleanedText.split(System.lineSeparator()).forEach { line ->
 				changePattern.useMatch(line) {
 					val amount = parseShortNumber(group("amount")).toLong()
 					val itemName = group("itemName")
@@ -106,13 +106,13 @@ object SackUtil {
 			text.siblings.forEach(::updateFromHoverText)
 			val hoverText = (text.style.hoverEvent as? HoverEvent.ShowText)?.value ?: return
 			val cleanedText = hoverText.unformattedString
-			if (cleanedText.startsWith("Added items:\n")) {
+			if (cleanedText.startsWith("Added items:" + System.lineSeparator())) {
 				if (!foundAdded) {
 					updateFromCleanText(cleanedText)
 					foundAdded = true
 				}
 			}
-			if (cleanedText.startsWith("Removed items:\n")) {
+			if (cleanedText.startsWith("Removed items:" + System.lineSeparator())) {
 				if (!foundRemoved) {
 					updateFromCleanText(cleanedText)
 					foundRemoved = true

@@ -12,18 +12,6 @@ public interface AccessorHandledScreen {
     @Nullable
 	Slot getFocusedSlot_Firmament();
 
-    @Accessor("imageWidth")
-    int getBackgroundWidth_Firmament();
-
-    @Accessor("imageWidth")
-    void setBackgroundWidth_Firmament(int newBackgroundWidth);
-
-    @Accessor("imageHeight")
-    int getBackgroundHeight_Firmament();
-
-    @Accessor("imageHeight")
-    void setBackgroundHeight_Firmament(int newBackgroundHeight);
-
     @Accessor("leftPos")
     int getX_Firmament();
 
